@@ -1,7 +1,7 @@
 
 # ROS2 Driver for Cerulean Sonar S500
 
-This package implements a ROS driver for the Cerulean Sonar S500 device. It uses the  [ping-cpp](https://github.com/bluerobotics/ping-cpp) package to interface with the device. 
+This package implements a ROS driver for the Cerulean Sonar S500 device. It uses the  [ping-python](https://github.com/bluerobotics/ping-python) package to interface with the device. 
 
 
 
