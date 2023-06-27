@@ -1,5 +1,7 @@
 from brping import pinghf
 from sensor_msgs.msg import Range
+import rclpy
+
 class s500_sonar:
     def __init__(self, parameters, sonar_node):
         # Handle the passed in node
@@ -32,25 +34,61 @@ class s500_sonar:
         if sonar.initialize() is False:
             return False
         else:
-             # Create ROS Publisher if initalization succedeed 
+            # Configure Device
+            sonar.set_ping_enable(0)
+            if str.lower(params.get("auto_mode")) != 'false':
+                if sonar.set_mode_auto(1, True):
+                    logger.info("S500 set to automatic mode")
+                else:
+                    logger.warn("Unable to set automatic mode on device")
+            else:
+                if sonar.set_mode_auto(0, True):
+                    sonar.set_range(params.get("min_range"), params.get("max_range"), False)
+                    sonar.set_gain_setting(params.get("gain"), False)
+                    logger.info("S500 set to manual mode with range [%f:%f]mm and gain: %f" % (params.get("min_range"), params.get("max_range"), params.get("gain")))
+                else:
+                    logger.warn("Unable to set manual mode on device")
+            
+            if sonar.set_ping_interval(params.get("ping_interval")):
+                logger.info("Pinging at interval %d ms" % params.get("ping_interval"))
+            else:
+                logger.warn("Unable to set frequency on device")
+
+            if sonar.set_speed_of_sound(params.get("speed_of_sound")):
+                logger.info("Speed of sound set to %f mm/s" % params.get("speed_of_sound"))
+                sonar.set_ping_enable(1)
+            else:
+                logger.warn("Unable to set speed of sound")
+            # Create Publisher
             self.publisher_ = node.create_publisher(Range, params.get("sonar_topic"), 10)
-            self.timer = node.create_timer(1.0 / params.get("frequency"), self.sonar_callback)
+            self.timer = node.create_timer(params.get("ping_interval") / 1000.0, self.sonar_callback)
             return True
+        
+    def disable_sonar(self):
+        sonar.set_ping_enable(0)
         
     def sonar_callback(self):
         distance = -1.0 # Set to -1 for people to be able to handle if we aren't able to get a range distance
+        global sonar_profile
+        min_range = -1.0
+        max_range = -1.0
 
         try:
-            distance = sonar.get_profile()["distance"]# Try and get distance from sonar profile
+            sonar_profile = sonar.get_distance() # Try and get sonar profile
+            distance = sonar_profile["distance"]
+            min_range = sonar_profile["scan_start"]
+            max_range = sonar_profile["scan_length"]
         except:
-            logger.info("Unable to get sonar measurement before timeout. Try increasing timeout in ping1d file. Returning -1.0 for distance")
+            logger.warn("Unable to get sonar measurement! check device connection.")
+ 
         #sos = sonar.get_distance2()
         range_msg = Range()
         range_msg.header.frame_id = params.get("frame")
+        range_msg.header.stamp = node.get_clock().now().to_msg()
         range_msg.radiation_type = 1
         range_msg.field_of_view = params.get("fov")
-        range_msg.min_range = params.get("min_range")
-        range_msg.max_range = params.get("max_range")
+        range_msg.min_range = min_range * 1.0
+        range_msg.max_range = max_range * 1.0
         range_msg.range = distance / 1.0 # returns distance in mm
         #confidence = data["confidence"]
         self.publisher_.publish(range_msg)
