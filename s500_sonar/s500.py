@@ -35,7 +35,6 @@ class s500_sonar:
             return False
         else:
             # Configure Device
-            sonar.set_ping_enable(0)
             if sonar.set_device_id(params.get("device_id")):
                 logger.info("Device ID set to: %d " % params.get("device_id"))
             else:
@@ -60,9 +59,11 @@ class s500_sonar:
 
             if sonar.set_speed_of_sound(params.get("speed_of_sound")):
                 logger.info("Speed of sound set to %f mm/s" % params.get("speed_of_sound"))
-                sonar.set_ping_enable(1)
             else:
                 logger.warn("Unable to set speed of sound")
+            
+            sonar.set_ping_enable(1)
+            
             # Create Publisher
             self.publisher_ = node.create_publisher(Range, params.get("sonar_topic"), 10)
             self.timer = node.create_timer(params.get("ping_interval") / 1000.0, self.sonar_callback)
@@ -84,6 +85,7 @@ class s500_sonar:
             max_range = sonar_profile["scan_length"]
         except:
             logger.warn("Unable to get sonar measurement! check device connection.")
+            self.disable_sonar()
  
         #sos = sonar.get_distance2()
         range_msg = Range()

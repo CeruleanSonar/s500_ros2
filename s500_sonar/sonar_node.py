@@ -43,12 +43,15 @@ class sonar_node(Node):
             self.get_logger().info("Successfully connected to device at %s" % parameters.get("device_port"))
 
        
-
 def main(args=None):
     rclpy.init(args=args)
     node = sonar_node()
-    rclpy.spin(node)
-    sonar.disable_sonar()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        sonar.disable_sonar()
+        node.get_logger().info("Shutting down the node")
+
     node.destroy_node()
     rclpy.shutdown()
 
