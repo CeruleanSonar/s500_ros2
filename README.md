@@ -14,21 +14,17 @@ To install the package simply clone and build like any ROS2 package.
 cd <sonar_ws>/src
 git clone https://github.com/jackarivera/s500_ros2
 cd ../
+rosdep install --from-paths src --ignore-src
 colcon build
 ```
     
 ## Usage
 
-Source your workspace and use the launch file provided.
+Source your workspace and run the sonar node via:
 
-Launch with provided sonar_config.yaml (s500_sonar/configs/sonar_config.yaml)
+Run the sonar node
 ```bash
-ros2 launch s500_sonar s500.launch.py
-```
-
-Launch with overrided parameters
-```bash
-ros2 launch s500_sonar s500.launch.py device:=/dev/ttyUSB0 baudrate:=115200
+ros2 run s500_sonar sonar_node
 ```
 ## License
 
