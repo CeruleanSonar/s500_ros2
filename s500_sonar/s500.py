@@ -36,6 +36,10 @@ class s500_sonar:
         else:
             # Configure Device
             sonar.set_ping_enable(0)
+            if sonar.set_device_id(params.get("device_id")):
+                logger.info("Device ID set to: %d " % params.get("device_id"))
+            else:
+                logger.warn("Unable to set the device ID")
             if str.lower(params.get("auto_mode")) != 'false':
                 if sonar.set_mode_auto(1, True):
                     logger.info("S500 set to automatic mode")
