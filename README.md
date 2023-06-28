@@ -8,7 +8,7 @@ This package implements a ROS driver for the Cerulean Sonar S500 device. It uses
 
 ## Installing
 
-To install the package simply clone and build like any ROS2 package. 
+To install the package simply clone and build like any ROS2 package. [Depends on python3-serial]
 
 ```bash
 cd <sonar_ws>/src
